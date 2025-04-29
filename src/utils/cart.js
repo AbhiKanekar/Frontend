@@ -1,4 +1,5 @@
-// utils/cart.js
+import toast from "react-hot-toast";
+
 export async function addToCart(product) {
     const res = await fetch('/api/cart', {
         method: 'POST',
@@ -9,6 +10,9 @@ export async function addToCart(product) {
     });
 
     const data = await res.json();
+    if(res.ok){
+        toast.success("Product Added successfully!!")
+    }
     if (!res.ok) throw new Error(data.message);
     return data;
 }

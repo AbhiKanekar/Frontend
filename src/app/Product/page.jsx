@@ -8,7 +8,7 @@ export default function ProductPage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const limit = 12;
-  const { addToCart } = useCart(); // Access cart context
+  const { addToCart } = useCart(); 
 
   useEffect(() => {
     const fetchProducts = async () => {

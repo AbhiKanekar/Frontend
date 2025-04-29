@@ -49,23 +49,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="py-12 bg-gradient-to-b from-white to-gray-100">
-        <h2 className="text-4xl font-bold text-center text-gray-800 mb-10">
-          Shop by Category
-        </h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6">
-          <div className="bg-[#f7f7ff] border rounded-xl p-4 text-center shadow hover:shadow-lg transition-all duration-300">
-            <Image
-              src={"/personal_care.jpg"}
-              alt="personal care image"
-              width={30}
-              height={30}
-              className="w-24 h-24 object-cover rounded-full border p-1 bg-gray-50 transition-transform duration-300 group-hover:scale-110"
-              priority
-            />
-          </div>
-        </div>
-      </section>
+      
 
       <section className="p-8 bg-gray-50">
         <h2 className="text-4xl font-semibold text-center mb-8">
