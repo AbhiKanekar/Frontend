@@ -1,7 +1,6 @@
 import { Roboto, Poppins } from "next/font/google";
 import "./globals.css";
-import { CartProvider } from "@/context/CartContext";
-import { AuthProvider } from "@/context/Provider";
+import { AppProviders } from "@/context/Provider";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -22,9 +21,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={poppins.className}>
       <body className={` antialiased`}>
-        <CartProvider>
-          <AuthProvider>{children}</AuthProvider>
-        </CartProvider>
+        <AppProviders>
+          {children}
+        </AppProviders>
       </body>
     </html>
   );

@@ -1,12 +1,9 @@
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/Components/layout/Navbar";
+import toast from "react-hot-toast";
 
 export default function AddProduct() {
-  const router = useRouter();
-
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -16,112 +13,149 @@ export default function AddProduct() {
     stock: "",
   });
 
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({
+      ...prev,
+      [e.target.name]: e.target.value,
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    // Validate fields
-    if (!formData.name || !formData.description || !formData.price) {
-      setError("Name, description, and price are required");
-      return;
-    }
+    const loadingToast = toast.loading("Adding product...");
 
     try {
       const res = await fetch("/api/products", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...formData,
-          price: parseFloat(formData.price),
-          stock: parseInt(formData.stock),
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
 
-      const data = await res.json();
+      const json = await res.json();
 
-      if (!res.ok) {
-        throw new Error(data.error || "Something went wrong");
+      if (json.success) {
+        toast.success("Product added successfully!", { id: loadingToast });
+        router.push("/Product");
+      } else {
+        toast.error(json.error || "Something went wrong", { id: loadingToast });
       }
-
-      setSuccess("✅ Product added successfully!");
-      setError("");
-      setFormData({
-        name: "",
-        description: "",
-        price: "",
-        image: "",
-        category: "",
-        stock: "",
-      });
-
-      // Redirect to the products page after 1 second
-      setTimeout(() => {
-        router.push("/products"); // Navigate to the product list page
-      }, 1000);
     } catch (err) {
-      setError(err.message);
-      setSuccess("");
+      console.error(err);
+      toast.error("Network error", { id: loadingToast });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <>
-      <Navbar />
-      <div className="max-w-2xl mx-auto mt-2.5 p-8 bg-white rounded-3xl shadow-2xl mb-2.5">
-        <h1 className="text-3xl font-extrabold text-center text-gray-800 mb-6">
-          Add New Product
-        </h1>
+    <div className="max-w-3xl mx-auto p-8 bg-white shadow-xl rounded-xl mt-10">
+      <h1 className="text-4xl font-bold text-center mb-8 text-blue-700">
+        Add New Product
+      </h1>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Name */}
+        <div>
+          <label className="block mb-2 font-semibold text-gray-700">
+            Product Name
+          </label>
+          <input
+            type="text"
+            name="name"
+            required
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
 
-        {error && (
-          <p className="bg-red-100 text-red-700 px-4 py-2 mb-4 rounded text-center">
-            {error}
-          </p>
-        )}
-        {success && (
-          <p className="bg-green-100 text-green-700 px-4 py-2 mb-4 rounded text-center">
-            {success}
-          </p>
-        )}
+        {/* Description */}
+        <div>
+          <label className="block mb-2 font-semibold text-gray-700">
+            Description
+          </label>
+          <textarea
+            name="description"
+            rows={3}
+            value={formData.description}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded px-4 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {["name", "description", "price", "image", "category", "stock"].map(
-            (field) => (
-              <div key={field}>
-                <label className="block text-gray-700 font-semibold mb-2 capitalize">
-                  {field}
-                </label>
-                <input
-                  type={
-                    field === "price" || field === "stock" ? "number" : "text"
-                  }
-                  name={field}
-                  value={formData[field]}
-                  onChange={handleChange}
-                  required={field !== "image"}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  placeholder={`Enter ${field}`}
-                />
-              </div>
-            )
-          )}
+        {/* Price */}
+        <div>
+          <label className="block mb-2 font-semibold text-gray-700">
+            Price ($)
+          </label>
+          <input
+            type="number"
+            name="price"
+            required
+            value={formData.price}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
 
+        {/* Image URL */}
+        <div>
+          <label className="block mb-2 font-semibold text-gray-700">
+            Image URL
+          </label>
+          <input
+            type="text"
+            name="image"
+            required
+            value={formData.image}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
+        {/* Category */}
+        <div>
+          <label className="block mb-2 font-semibold text-gray-700">
+            Category
+          </label>
+          <input
+            type="text"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
+        {/* Stock */}
+        <div>
+          <label className="block mb-2 font-semibold text-gray-700">
+            Stock
+          </label>
+          <input
+            type="number"
+            name="stock"
+            value={formData.stock}
+            onChange={handleChange}
+            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          />
+        </div>
+
+        {/* Submit */}
+        <div className="text-center">
           <button
             type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition duration-200"
+            disabled={loading}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg transition disabled:opacity-50"
           >
-            Add Product
+            {loading ? "Adding..." : "Add Product"}
           </button>
-        </form>
-      </div>
-    </>
+        </div>
+      </form>
+    </div>
   );
 }

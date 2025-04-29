@@ -1,25 +1,55 @@
-import dbConnect from "@/lib/mongodb";
-import Form from "@/models/Form";
-import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
+import { MongoClient } from 'mongodb';
+import bcrypt from 'bcryptjs';
 
-export async function POST(req) {
+export async function POST(request) {
     try {
-        await dbConnect();
-        const { name, email, password } = await req.json();
+        const { name, email, password } = await request.json();
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+        if (!name || !email || !password) {
+            return new Response(
+                JSON.stringify({ message: 'All fields are required' }),
+                { status: 400 }
+            );
+        }
 
-        await Form.create({
+        const client = await MongoClient.connect(process.env.MONGODB_URI);
+        const db = client.db();
+
+        const existingUser = await db.collection('users').findOne({ email });
+        if (existingUser) {
+            client.close();
+            return new Response(
+                JSON.stringify({ message: 'User already exists' }),
+                { status: 409 }
+            );
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+
+        const newUser = {
             name,
             email,
             password: hashedPassword,
-        });
-        console.log("Request body:", { name, email, password });
+            createdAt: new Date(),
+            updatedAt: new Date(),
+        };
 
-        return NextResponse.json({ message: "User Created Successfully" });
+        const result = await db.collection('users').insertOne(newUser);
+        client.close();
+
+        return new Response(
+            JSON.stringify({
+                message: 'User created successfully',
+                userId: result.insertedId
+            }),
+            { status: 201 }
+        );
+
     } catch (error) {
-        console.error("POST API Error:", error);
-        return NextResponse.json({ message: 'Error checking user existence', error: error.message }, { status: 500 });
+        console.error('Registration error:', error);
+        return new Response(
+            JSON.stringify({ message: 'Internal server error' }),
+            { status: 500 }
+        );
     }
 }
